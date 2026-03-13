@@ -4,12 +4,17 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 
+import CreateProductDto from './dto/create-product.dto';
 import { ProductsService } from './products.service';
-import type { Product, CreateProduct } from './interfaces/products.interface';
+import type { Product } from './interfaces/products.interface';
+import UpdateProductDto from './dto/update-product.dto';
 
 @Controller('products')
 export class ProductsController {
@@ -25,9 +30,9 @@ export class ProductsController {
   }
 
   @Get(':id')
-  getProduct(@Param('id') id: string): Product | { msg: string } {
+  getProduct(@Param('id', ParseIntPipe) id: number): Product | { msg: string } {
     const product: Product | { msg: string } =
-      this.productsService.getProduct(+id);
+      this.productsService.getProduct(id);
     if (!product) {
       return { msg: 'Product not found' };
     }
@@ -35,20 +40,21 @@ export class ProductsController {
   }
 
   @Post()
-  createProduct(@Body() newProduct: CreateProduct): Product {
-    return this.productsService.creatProduct(newProduct);
+  @UsePipes(new ValidationPipe())
+  createProduct(@Body() dto: CreateProductDto): Product {
+    return this.productsService.creatProduct(dto);
   }
 
   @Delete(':id')
-  deleteProduct(@Param('id') id: string): Product | null {
-    return this.productsService.deleteProduct(+id);
+  deleteProduct(@Param('id', ParseIntPipe) id: number): Product | null {
+    return this.productsService.deleteProduct(id);
   }
 
   @Patch(':id')
   updateProduct(
-    @Param('id') id: string,
-    @Body() product: CreateProduct,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateProductDto,
   ): Product | string {
-    return this.productsService.updateProduct(+id, product);
+    return this.productsService.updateProduct(id, dto);
   }
 }
